@@ -15,10 +15,16 @@ use App\Http\Controllers\AuthorizationController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\StateAdministrationController;
 use App\Http\Controllers\AccountGovernanceController;
+use App\Http\Controllers\MapController;
+use App\Http\Controllers\AssistantController;
+use App\Http\Controllers\PublicAccessController;
+use App\Http\Controllers\PasswordController;
 
 Route::get('/', [AuthController::class, 'create'])->name('login');
 Route::get('/connexion', [AuthController::class, 'create']);
 Route::post('/connexion', [AuthController::class, 'store'])->name('login.store');
+Route::get('/demande-acces', [PublicAccessController::class, 'create'])->name('access.request');
+Route::post('/demande-acces', [PublicAccessController::class, 'store'])->name('access.request.store');
 Route::post('/deconnexion', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::middleware('auth')->group(function () {
@@ -29,6 +35,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/stocks', [StockController::class, 'store'])->middleware('role:pra')->name('stocks.store');
     Route::post('/reports/reequilibrage', [SignalementController::class, 'reequilibrage'])->middleware('role:pra')->name('reports.reequilibrage');
     Route::post('/reports/subvention', [SignalementController::class, 'subvention'])->middleware('role:pra')->name('reports.subvention');
+    Route::get('/map/points', [MapController::class, 'points'])->name('map.points');
+    Route::post('/assistant', [AssistantController::class, 'ask'])->name('assistant.ask');
+    Route::get('/mot-de-passe', [PasswordController::class, 'edit'])->name('password.change');
+    Route::put('/mot-de-passe', [PasswordController::class, 'update'])->name('password.update');
     Route::post('/authorizations/request', [AuthorizationController::class, 'request'])->middleware('role:pharmacie')->name('authorizations.request');
     Route::post('/authorizations/{autorisation}/decision', [AuthorizationController::class, 'decide'])->middleware('role:pra')->name('authorizations.decide');
     Route::put('/my-structure', [StructureController::class, 'update'])->name('structure.update');
@@ -50,6 +60,6 @@ Route::middleware(['auth', 'role:pra'])->prefix('dashboard/pra')->group(function
     Route::get('/', [DashboardPraController::class, 'index'])->name('dashboard.pra');
 });
 
-Route::middleware(['auth', 'role:pharmacie'])->prefix('dashboard/pharmacie')->group(function () {
+Route::middleware(['auth', 'role:pharmacie,fournisseur'])->prefix('dashboard/pharmacie')->group(function () {
     Route::get('/', [DashboardPharmacieController::class, 'index'])->name('dashboard.pharmacie');
 });
