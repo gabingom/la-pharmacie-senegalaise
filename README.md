@@ -1,11 +1,11 @@
 ## La Pharmacie Sénégalaise
 
-Cette version Laravel conserve les pages, le design, les actions AJAX, les rôles et le schéma MySQL de l'application PHP originale. Le code fonctionnel porté est dans `legacy/`; Laravel fournit le point d'entrée et le routage.
+Cette application Laravel gère l'authentification, les dashboards, les stocks, les commandes, les rééquilibrages, les subventions, les autorisations et l'administration des comptes. Les contrôleurs, routes et vues Blade sont les sources de vérité du projet.
 
 ### Lancement local
 
 1. Configurer `DB_DATABASE`, `DB_USERNAME` et `DB_PASSWORD` dans `.env`.
-2. Importer `database/pharmacie_senegalaise.sql` dans MySQL si nécessaire.
+2. Importer `database/lps.sql` dans MySQL si nécessaire.
 3. Exécuter `php artisan serve --host=127.0.0.1 --port=8000`.
 4. Ouvrir `http://127.0.0.1:8000`.
 
