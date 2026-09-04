@@ -141,6 +141,9 @@ function suggererReequilibrages($pdo) {
                     );
                     if ($qte > 0) {
                         $suggestions[] = [
+                            'medicament_id'=> (int)$d['medicament_id'],
+                            'source_id'    => (int)$s['structure_id'],
+                            'destination_id' => (int)$d['structure_id'],
                             'medicament'  => $d['nom'] . ' ' . $d['dosage'],
                             'source'      => $s['structure_nom'],
                             'source_pct'  => $s['pct'],
@@ -157,6 +160,42 @@ function suggererReequilibrages($pdo) {
         }
     }
     return $suggestions;
+}
+
+/**
+ * Enregistre les suggestions IA pour qu'elles puissent etre validees par l'Etat.
+ */
+function synchroniserReequilibragesIA($pdo, $suggestions) {
+    $pdo->beginTransaction();
+    try {
+        $pdo->exec("DELETE FROM reequilibrages WHERE origine='ia' AND statut='en_attente'");
+        $existing = $pdo->prepare("SELECT COUNT(*) FROM reequilibrages
+            WHERE origine='ia' AND medicament_id=? AND source_id=? AND destination_id=? AND quantite=?");
+        $insert = $pdo->prepare("INSERT INTO reequilibrages
+            (medicament_id,source_id,destination_id,quantite,origine,priorite,justification)
+            VALUES (?,?,?,?,'ia',?,?)");
+        foreach ($suggestions as $suggestion) {
+            $existing->execute([
+                $suggestion['medicament_id'],
+                $suggestion['source_id'],
+                $suggestion['destination_id'],
+                $suggestion['quantite']
+            ]);
+            if ($existing->fetchColumn()) continue;
+            $insert->execute([
+                $suggestion['medicament_id'],
+                $suggestion['source_id'],
+                $suggestion['destination_id'],
+                $suggestion['quantite'],
+                $suggestion['priorite'],
+                'Suggestion generee automatiquement par le moteur IA.'
+            ]);
+        }
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
 }
 
 /**

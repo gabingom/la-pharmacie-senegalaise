@@ -41,6 +41,8 @@ require_once '../config/moteur_ia.php';
 $iaRuptures       = predireRuptures($pdo);
 $iaReequilibrages = suggererReequilibrages($pdo);
 $iaDesequilibre   = detecterDesequilibres($pdo);
+synchroniserReequilibragesIA($pdo, $iaReequilibrages);
+$nbReeq = $pdo->query("SELECT COUNT(*) FROM reequilibrages WHERE statut='en_attente'")->fetchColumn();
 
 // Couverture nationale = part des regions dont le stock est >= seuil (100%)
 $nbRegionsOk = 0;

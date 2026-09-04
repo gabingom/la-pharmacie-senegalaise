@@ -28,7 +28,7 @@ $nbCrit=0; foreach($stocks as $s){ if(pctStock($s['quantite'],$s['seuil_alerte']
 
 // Demandes des pharmacies rattachées à ce PRA
 $demandes = $pdo->prepare("
-    SELECT c.*, st.nom AS struct_nom, st.pra_parent,
+    SELECT c.*, MAX(st.nom) AS struct_nom, MAX(st.pra_parent) AS pra_parent,
            GROUP_CONCAT(CONCAT(m.nom,' ',m.dosage) SEPARATOR ', ') AS meds,
            SUM(l.quantite_demandee) AS qte
     FROM commandes c JOIN utilisateurs u ON c.demandeur_id=u.id
@@ -74,7 +74,10 @@ $perem = $pdo->prepare("
 $perem->execute([$sid]); $perem=$perem->fetchAll();
 
 // Pharmacies de la zone (pour signalements)
-$pharmacies = $pdo->prepare("SELECT s.id, s.nom, s.telephone, s.zone, u.email FROM structures s LEFT JOIN utilisateurs u ON u.structure_id=s.id WHERE s.type='pharmacie' AND s.pra_parent=? GROUP BY s.id");
+$pharmacies = $pdo->prepare("SELECT s.id, s.nom, s.telephone, s.zone,
+  (SELECT u.email FROM utilisateurs u WHERE u.structure_id=s.id ORDER BY u.id LIMIT 1) AS email
+  FROM structures s
+  WHERE s.type='pharmacie' AND s.pra_parent=?");
 $pharmacies->execute([$sid]); $pharmacies=$pharmacies->fetchAll();
 
 // Médicaments (pour signalements)
